@@ -191,7 +191,7 @@ namespace PaymentSystem.Repo
             var logInUser = _context.Users.FirstOrDefault(f => f.UserId == input.Id);
             var payeeUser = _context.Users.FirstOrDefault(f => f.Username == input.PayeeUserName);
 
-            if (debtTo != null)
+            if (debtTo != null && debtTo.Amount != 0)
             {
                 debtTo.Amount = debtTo.Amount - input.TransferAmount;
                 _context.Update(debtTo);
