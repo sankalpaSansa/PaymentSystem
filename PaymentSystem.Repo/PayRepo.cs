@@ -49,11 +49,23 @@ namespace PaymentSystem.Repo
         public BalanceDto FundTransfer(TransferDto input)       
         {
             var payeeUser = _context.Users.FirstOrDefault(f => f.Username == input.PayeeUserName);
+            var userWallet = _context.Wallets.Include(a => a.User).FirstOrDefault(f => f.User.UserId == input.Id);
+            if (payeeUser.UserId == input.Id)
+            {
+                var debtFrom = debtFromList(input.Id);
+                var debtTo = debtToList(input.Id);
+                return new BalanceDto
+                {
+                    Amount = userWallet.Amount,
+                    DebtFromList = debtFrom,
+                    DebtToList = debtTo
+                };
+            }
             if (payeeUser == null)
             {
                 throw new UserFriendlyException("User not found with UserId " + input.PayeeUserName);
             }
-            var userWallet = _context.Wallets.Include(a => a.User).FirstOrDefault(f => f.User.UserId == input.Id);
+            
             if(userWallet == null)
             {
                 throw new UserFriendlyException("No wallet created for user " + input.Id);
@@ -193,6 +205,7 @@ namespace PaymentSystem.Repo
 
             if (debtTo != null && debtTo.Amount != 0)
             {
+                var balanceDebto = debtTo.Amount - input.TransferAmount;
                 debtTo.Amount = debtTo.Amount - input.TransferAmount;
                 _context.Update(debtTo);
                 _context.SaveChanges();
